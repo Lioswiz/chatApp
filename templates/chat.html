@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chat Platform</title>
+
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+
+<div class="chat-container">
+
+    <!-- ==========================
+         Sidebar
+    =========================== -->
+
+    <aside class="sidebar">
+
+        <div class="sidebar-header">
+            <h2>Chat Platform</h2>
+        </div>
+<div class="current-user">
+
+    <div class="avatar">
+        {{if .User.Avatar}}
+            <img src="{{.User.Avatar}}" alt="Avatar">
+        {{else}}
+            👤
+        {{end}}
+    </div>
+
+    <div class="user-info">
+
+        <h4 id="currentUser">
+            {{.User.Username}}
+        </h4>
+
+        <p>
+            {{.User.FirstName}} {{.User.LastName}}
+        </p>
+
+        <span class="status online">
+            ● Online
+        </span>
+
+    </div>
+
+    
+
+        <div class="users-header">
+            <h3>Online Users</h3>
+        </div>
+
+        <div id="onlineUsers" class="users-list">
+
+            <!-- Populated by JavaScript -->
+
+        </div>
+
+        <a href="/logout" class="logout-btn">
+            Logout
+        </a>
+
+    </aside>
+
+    <!-- ==========================
+         Chat Area
+    =========================== -->
+
+    <main class="chat-main">
+
+        <header class="chat-header">
+            <h2>Public Chat Room</h2>
+        </header>
+
+        <section
+            id="messages"
+            class="messages"
+        >
+
+            <!-- Messages inserted dynamically -->
+
+        </section>
+
+        <!-- ==========================
+             Typing Indicator
+        =========================== -->
+
+        <div
+            id="typingIndicator"
+            class="typing-indicator"
+        >
+        </div>
+
+        <!-- ==========================
+             Message Form
+        =========================== -->
+
+        <form
+            id="messageForm"
+            class="message-form"
+        >
+
+            <input
+                id="messageInput"
+                type="text"
+                placeholder="Type a message..."
+                autocomplete="off"
+                required
+            >
+
+            <label
+                class="upload-button"
+                for="fileInput"
+            >
+                📎
+            </label>
+
+            <input
+                id="fileInput"
+                type="file"
+                hidden
+            >
+
+            <button
+                type="submit"
+                class="send-btn"
+            >
+                Send
+            </button>
+
+        </form>
+
+    </main>
+
+</div>
+
+<script src="/static/js/websocket.js"></script>
+<script src="/static/js/chat.js"></script>
+
+</body>
+</html>
