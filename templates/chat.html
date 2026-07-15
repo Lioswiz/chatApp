@@ -86,7 +86,20 @@
             class="messages"
         >
 
-            <!-- Messages inserted dynamically -->
+            <!-- Render initial history -->
+            {{range .Messages}}
+                <div class="message {{if eq .SenderID $.User.ID}}sent{{else}}received{{end}}">
+                    <div class="message-author">
+                        User #{{.SenderID}}
+                    </div>
+                    <div class="message-body">
+                        {{.Message}}
+                    </div>
+                    <div class="message-time">
+                        {{.CreatedAt.Format "15:04"}}
+                    </div>
+                </div>
+            {{end}}
 
         </section>
 

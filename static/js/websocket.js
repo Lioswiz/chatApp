@@ -74,7 +74,7 @@ function connectWebSocket() {
 function sendChat(message, receiverID = null) {
 
     if (!socket || socket.readyState !== WebSocket.OPEN) {
-        return;
+        return false;
     }
 
     socket.send(
@@ -87,6 +87,8 @@ function sendChat(message, receiverID = null) {
             }
         })
     );
+
+    return true;
 }
 
 // ======================================

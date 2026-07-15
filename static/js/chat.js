@@ -42,9 +42,12 @@ messageForm.addEventListener("submit", function (e) {
         return;
     }
 
-    sendChat(text, activeReceiver);
-
-    messageInput.value = "";
+    const sent = sendChat(text, activeReceiver);
+    if (sent) {
+        messageInput.value = "";
+    } else {
+        alert("Cannot send message: Connection is offline. Please wait for reconnection.");
+    }
 });
 
 // ======================================
@@ -175,4 +178,6 @@ function formatTime(timestamp) {
         hour: "2-digit",
         minute: "2-digit"
     });
-}
+}
+
+window.addEventListener("load", scrollToBottom);
