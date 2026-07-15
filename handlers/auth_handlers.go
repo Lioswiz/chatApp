@@ -4,6 +4,7 @@ import (
 	"html/template"
 	"net/http"
 
+	"chat-platform/middleware"
 	"chat-platform/models"
 	"chat-platform/service"
 )
@@ -122,4 +123,45 @@ func (h *AuthHandler) Logout(w http.ResponseWriter, r *http.Request) {
 	})
 
 	http.Redirect(w, r, "/login", http.StatusSeeOther)
+}
+
+// Profile displays the profile page and handles updates.
+func (h *AuthHandler) Profile(w http.ResponseWriter, r *http.Request) {
+
+	user, ok := middleware.GetUser(r)
+	if !ok {
+		http.Redirect(w, r, "/login", http.StatusSeeOther)
+		return
+	}
+
+	switch r.Method {
+
+	case http.MethodGet:
+
+		data := struct {
+			User interface{}
+		}{
+			User: user,
+		}
+
+		if err := h.Templates.ExecuteTemplate(w, "profile.html", data); err != nil {
+			http.Error(w, "failed to render profile page", http.StatusInternalServerError)
+		}
+
+	case http.MethodPost:
+
+		user.FirstName = r.FormValue("first_name")
+		user.LastName = r.FormValue("last_name")
+		user.Avatar = r.FormValue("avatar")
+
+		if err := h.AuthService.UpdateUser(user); err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+
+		http.Redirect(w, r, "/chat", http.StatusSeeOther)
+
+	default:
+		http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
+	}
 }

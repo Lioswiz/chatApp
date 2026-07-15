@@ -37,7 +37,7 @@ func NewWebSocketHandler(hub *Hub, chatService *service.ChatService) *WebSocketH
 func (h *WebSocketHandler) ServeWS(w http.ResponseWriter, r *http.Request) {
 
 	// Get authenticated user from middleware.
-	userID, ok := middleware.GetUserID(r)
+	user, ok := middleware.GetUser(r)
 	if !ok {
 		http.Error(w, "unauthorized", http.StatusUnauthorized)
 		return
@@ -53,12 +53,8 @@ func (h *WebSocketHandler) ServeWS(w http.ResponseWriter, r *http.Request) {
 		Hub:         h.Hub,
 		Conn:        conn,
 		Send:        make(chan []byte, 256),
-		UserID:      userID,
-
-		// Temporary username.
-		// Later we'll fetch it from the authenticated user.
-		Username: "User",
-
+		UserID:      user.ID,
+		Username:    user.Username,
 		ChatService: h.ChatService,
 	}
 

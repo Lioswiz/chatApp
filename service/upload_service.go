@@ -49,7 +49,7 @@ func NewUploadService(uploadRepo *repository.UploadRepository, uploadDir string)
 }
 
 // SaveFile validates, stores the file, and saves its metadata.
-func (s *UploadService) SaveFile(file multipart.File, header *multipart.FileHeader) (*models.Upload, error) {
+func (s *UploadService) SaveFile(file multipart.File, header *multipart.FileHeader, userID int) (*models.Upload, error) {
 
 	defer file.Close()
 
@@ -88,11 +88,15 @@ func (s *UploadService) SaveFile(file multipart.File, header *multipart.FileHead
 		return nil, err
 	}
 
+	// Store relative path for URL consumption, replacing backslashes with forward slashes
+	webPath := filepath.ToSlash(filepath.Join("/static/uploads", filename))
+
 	upload := &models.Upload{
-		FileName: header.Filename,
-		FilePath: path,
-		FileSize: header.Size,
-		MimeType: strings.ToLower(contentType),
+		UploadedBy: userID,
+		FileName:   header.Filename,
+		FilePath:   webPath,
+		FileSize:   header.Size,
+		MimeType:   strings.ToLower(contentType),
 	}
 
 	err = s.UploadRepo.SaveUpload(upload)

@@ -85,6 +85,7 @@ func (c *Client) ReadPump() {
 		}
 
 		payload.SenderID = c.UserID
+		payload.SenderUsername = c.Username
 		payload.CreatedAt = time.Now()
 
 		message := &models.Message{
@@ -97,11 +98,7 @@ func (c *Client) ReadPump() {
 
 		savedMessage, err := c.ChatService.SendMessage(message)
 		if err != nil {
-			log.Println("save message:", err)
-			continue
-		}
-		if err != nil {
-			log.Println("SendMessage error:", err)
+			log.Println("save message error:", err)
 			continue
 		}
 

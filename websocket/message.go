@@ -26,7 +26,8 @@ type WSMessage struct {
 type ChatPayload struct {
 	ID int `json:"id"`
 
-	SenderID int `json:"sender_id"`
+	SenderID       int    `json:"sender_id"`
+	SenderUsername string `json:"sender_username"`
 
 	// nil means public chat
 	ReceiverID *int `json:"receiver_id,omitempty"`

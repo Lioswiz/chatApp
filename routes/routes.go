@@ -5,6 +5,7 @@ import (
 	"html/template"
 	"net/http"
 
+	"chat-platform/config"
 	"chat-platform/handlers"
 	"chat-platform/middleware"
 	"chat-platform/repository"
@@ -13,37 +14,43 @@ import (
 )
 
 // Register creates and registers all application routes.
-func Register(db *sql.DB, hub *websocket.Hub) *http.ServeMux {
+func Register(db *sql.DB, hub *websocket.Hub) http.Handler {
+
+	// =====================================
+	// Config
+	// =====================================
+	cfg := config.Load()
 
 	// =====================================
 	// Templates
 	// =====================================
-
 	templates := template.Must(template.ParseGlob("templates/*.html"))
 
 	// =====================================
 	// Repositories
 	// =====================================
-
 	userRepo := repository.NewUserRepository(db)
 	messageRepo := repository.NewMessageRepository(db)
 	sessionRepo := repository.NewSessionRepository(db)
+	uploadRepo := repository.NewUploadRepository(db)
 
 	// =====================================
 	// Services
 	// =====================================
-
 	authService := service.NewAuthService(userRepo)
 	chatService := service.NewChatService(messageRepo)
 	sessionService := service.NewSessionService(
 		sessionRepo,
 		userRepo,
 	)
+	uploadService := service.NewUploadService(
+		uploadRepo,
+		cfg.UploadDir,
+	)
 
 	// =====================================
 	// HTTP Handlers
 	// =====================================
-
 	authHandler := handlers.NewAuthHandler(
 		authService,
 		sessionService,
@@ -55,10 +62,13 @@ func Register(db *sql.DB, hub *websocket.Hub) *http.ServeMux {
 		chatService,
 	)
 
+	uploadHandler := handlers.NewUploadHandler(
+		uploadService,
+	)
+
 	// =====================================
 	// WebSocket Handler
 	// =====================================
-
 	wsHandler := websocket.NewWebSocketHandler(
 		hub,
 		chatService,
@@ -67,7 +77,6 @@ func Register(db *sql.DB, hub *websocket.Hub) *http.ServeMux {
 	// =====================================
 	// Router
 	// =====================================
-
 	mux := http.NewServeMux()
 
 	// Home
@@ -89,6 +98,24 @@ func Register(db *sql.DB, hub *websocket.Hub) *http.ServeMux {
 		),
 	)
 
+	// Profile Page (Protected)
+	mux.Handle(
+		"/profile",
+		middleware.SessionMiddleware(
+			sessionService,
+			http.HandlerFunc(authHandler.Profile),
+		),
+	)
+
+	// Upload Endpoint (Protected)
+	mux.Handle(
+		"/upload",
+		middleware.SessionMiddleware(
+			sessionService,
+			http.HandlerFunc(uploadHandler.Upload),
+		),
+	)
+
 	// WebSocket Endpoint (Protected)
 	mux.Handle(
 		"/ws",
@@ -98,5 +125,10 @@ func Register(db *sql.DB, hub *websocket.Hub) *http.ServeMux {
 		),
 	)
 
-	return mux
+	// Serve Static Files
+	fs := http.FileServer(http.Dir("./static"))
+	mux.Handle("/static/", http.StripPrefix("/static/", fs))
+
+	// Return multiplexer wrapped in request logging middleware
+	return middleware.Logger(mux)
 }

@@ -32,7 +32,7 @@
 
     <div class="user-info">
 
-        <h4 id="currentUser">
+        <h4 id="currentUser" data-id="{{.User.ID}}">
             {{.User.Username}}
         </h4>
 
@@ -52,13 +52,20 @@
             <h3>Online Users</h3>
         </div>
 
-        <div id="onlineUsers" class="users-list">
-
-            <!-- Populated by JavaScript -->
-
+        <div class="users-list">
+            <div class="user-item lobby-item" id="publicLobbyBtn" style="border-bottom: 1px solid #2f3136; margin-bottom: 10px; font-weight: bold;">
+                💬 Public Room
+            </div>
+            <div id="onlineUsers">
+                <!-- Populated by JavaScript -->
+            </div>
         </div>
 
-        <a href="/logout" class="logout-btn">
+        <a href="/profile" class="profile-btn" style="margin: 20px 20px 0 20px; text-align: center; text-decoration: none; color: white; background: #4f46e5; padding: 12px; border-radius: 8px; display: block;">
+            Edit Profile
+        </a>
+
+        <a href="/logout" class="logout-btn" style="margin: 10px 20px 20px 20px;">
             Logout
         </a>
 

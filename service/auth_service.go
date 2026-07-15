@@ -65,3 +65,8 @@ func (s *AuthService) Login(email, password string) (*models.User, error) {
 
 	return user, nil
 }
+
+// UpdateUser updates the user record.
+func (s *AuthService) UpdateUser(user *models.User) error {
+	return s.UserRepo.UpdateUser(user)
+}

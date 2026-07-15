@@ -106,3 +106,21 @@ func (r *UserRepository) GetUserByID(id int) (*models.User, error) {
 
 	return user, nil
 }
+
+// UpdateUser updates user details.
+func (r *UserRepository) UpdateUser(user *models.User) error {
+	query := `
+	UPDATE users
+	SET first_name = ?, last_name = ?, avatar = ?
+	WHERE id = ?`
+
+	_, err := r.DB.Exec(
+		query,
+		user.FirstName,
+		user.LastName,
+		user.Avatar,
+		user.ID,
+	)
+
+	return err
+}

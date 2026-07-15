@@ -45,6 +45,15 @@ func (h *Hub) Run() {
 		//------------------------------------
 		case client := <-h.Register:
 
+			// Send all currently online users to the new client first
+			for _, c := range h.Clients {
+				h.send(client, "presence", PresencePayload{
+					UserID:   c.UserID,
+					Username: c.Username,
+					Online:   true,
+				})
+			}
+
 			h.Clients[client.UserID] = client
 
 			log.Printf("%s connected", client.Username)

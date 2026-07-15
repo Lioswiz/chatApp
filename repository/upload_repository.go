@@ -20,19 +20,27 @@ func NewUploadRepository(db *sql.DB) *UploadRepository {
 func (r *UploadRepository) SaveUpload(upload *models.Upload) error {
 	query := `
 	INSERT INTO uploads
-	(message_id, file_name, file_path, file_size, mime_type)
+	(uploaded_by, file_name, file_path, file_size, mime_type)
 	VALUES (?, ?, ?, ?, ?)`
 
-	_, err := r.DB.Exec(
+	result, err := r.DB.Exec(
 		query,
-		upload.MessageID,
+		upload.UploadedBy,
 		upload.FileName,
 		upload.FilePath,
 		upload.FileSize,
 		upload.MimeType,
 	)
+	if err != nil {
+		return err
+	}
 
-	return err
+	id, err := result.LastInsertId()
+	if err != nil {
+		return err
+	}
+	upload.ID = int(id)
+	return nil
 }
 
 // GetUpload returns an upload by ID.
@@ -40,7 +48,7 @@ func (r *UploadRepository) GetUpload(id int) (*models.Upload, error) {
 	query := `
 	SELECT
 		id,
-		message_id,
+		uploaded_by,
 		file_name,
 		file_path,
 		file_size,
@@ -52,7 +60,7 @@ func (r *UploadRepository) GetUpload(id int) (*models.Upload, error) {
 
 	err := r.DB.QueryRow(query, id).Scan(
 		&upload.ID,
-		&upload.MessageID,
+		&upload.UploadedBy,
 		&upload.FileName,
 		&upload.FilePath,
 		&upload.FileSize,

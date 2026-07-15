@@ -1,32 +1,9 @@
 // ======================================
-// WebSocket Connection
+// Current User Details
 // ======================================
 
-const protocol = window.location.protocol === "https:" ? "wss://" : "ws://";
-
-const socket = new WebSocket(protocol + window.location.host + "/ws");
-
-socket.onopen = () => {
-    console.log("✅ Connected to WebSocket");
-};
-
-socket.onclose = () => {
-    console.log("❌ WebSocket disconnected");
-};
-
-socket.onerror = (err) => {
-    console.error("WebSocket error:", err);
-};
-
-socket.onmessage = (event) => {
-    const data = JSON.parse(event.data);
-
-    console.log("Received:", data);
-
-    appendMessage(data);
-};
-
-
+const currentUserEl = document.getElementById("currentUser");
+const currentUserID = currentUserEl ? parseInt(currentUserEl.getAttribute("data-id")) : 0;
 
 // ======================================
 // DOM Elements
@@ -40,6 +17,17 @@ const typingIndicator = document.getElementById("typingIndicator");
 // Currently selected private chat.
 // null = public room
 let activeReceiver = null;
+
+// Map of user_id -> username for online users
+const onlineUsers = new Map();
+
+const publicLobbyBtn = document.getElementById("publicLobbyBtn");
+if (publicLobbyBtn) {
+    publicLobbyBtn.addEventListener("click", () => {
+        activeReceiver = null;
+        document.querySelector(".chat-header h2").textContent = "Public Chat Room";
+    });
+}
 
 // ======================================
 // Send Message
@@ -86,9 +74,7 @@ function appendMessage(message) {
 
     wrapper.classList.add("message");
 
-    // If the backend sends current_user,
-    // this will automatically style your own messages.
-    if (message.current_user === true) {
+    if (message.sender_id === currentUserID) {
         wrapper.classList.add("sent");
     } else {
         wrapper.classList.add("received");
@@ -96,7 +82,7 @@ function appendMessage(message) {
 
     wrapper.innerHTML = `
         <div class="message-author">
-            ${message.username || "Unknown User"}
+            ${message.sender_username || "Unknown User"}
         </div>
 
         <div class="message-body">
@@ -112,45 +98,35 @@ function appendMessage(message) {
 
     scrollToBottom();
 }
-function sendChat(message, receiverID) {
-
-    const payload = {
-        message: message,
-        message_type: "text"
-    };
-
-    if (receiverID !== null) {
-        payload.receiver_id = receiverID;
-    }
-
-    socket.send(JSON.stringify(payload));
-}
 // ======================================
 // Online Users
 // ======================================
 
-function updatePresence(users) {
+function updatePresence(presence) {
+
+    if (presence.online) {
+        // Exclude current user from their own online users list
+        if (presence.user_id !== currentUserID) {
+            onlineUsers.set(presence.user_id, presence.username);
+        }
+    } else {
+        onlineUsers.delete(presence.user_id);
+    }
 
     const list = document.getElementById("onlineUsers");
+    if (!list) return;
 
     list.innerHTML = "";
 
-    users.forEach(user => {
-
+    onlineUsers.forEach((username, id) => {
         const div = document.createElement("div");
-
         div.className = "user-item";
-
-        div.innerHTML = `
-            🟢 ${user.username}
-        `;
+        div.innerHTML = `🟢 ${username}`;
 
         div.onclick = () => {
-
-            activeReceiver = user.id;
-
+            activeReceiver = id;
             document.querySelector(".chat-header h2").textContent =
-                "Chat with " + user.username;
+                "Chat with " + username;
         };
 
         list.appendChild(div);
@@ -199,7 +175,4 @@ function formatTime(timestamp) {
         hour: "2-digit",
         minute: "2-digit"
     });
-}
-function sendTyping(receiverID, typing) {
-    // We'll implement typing events later.
-}
+}

@@ -40,20 +40,14 @@ func main() {
 	// ==========================
 	// Register All Routes
 	// ==========================
-	router := routes.Register(db, hub)
-
-	// ==========================
-	// Serve Static Files
-	// ==========================
-	fs := http.FileServer(http.Dir("./static"))
-	router.Handle("/static/", http.StripPrefix("/static/", fs))
+	handler := routes.Register(db, hub)
 
 	// ==========================
 	// Start Server
 	// ==========================
 	log.Printf("🚀 Server running at http://localhost%s\n", cfg.Port)
 
-	err = http.ListenAndServe(cfg.Port, router)
+	err = http.ListenAndServe(cfg.Port, handler)
 	if err != nil {
 		log.Fatal("Server Error:", err)
 	}
